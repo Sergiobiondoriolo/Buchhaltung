@@ -8025,6 +8025,51 @@ function AuditCenter({
   }
 
   // ── Invoices ──────────────────────────────────────────────────────
+  // ── Generate professional HTML document for Drive upload ────────
+  function generateDocHTMLForDrive(doc, profile, docType) {
+    const eur = n => new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n||0);
+    const fd = d => d ? String(d).slice(0,10).split("-").reverse().join(".") : "—";
+    const p = profile || {};
+    const company = p.company || p.name || "";
+    const items = Array.isArray(doc.items) ? doc.items : [];
+    const netto = items.reduce((s,it) => s + (parseFloat(it.qty)||1) * (parseFloat(it.price)||0), 0);
+    const shipping = parseFloat(doc.versandkosten) || 0;
+    const total = parseFloat(doc.total) || (netto + shipping);
+    const isKU = !p.vatMode || p.vatMode === "none";
+    const typeLabels = {rechnung:"RECHNUNG",gutschrift:"GUTSCHRIFT",storno:"STORNORECHNUNG",mahnung:"MAHNUNG",lieferschein:"LIEFERSCHEIN",anzahlung:"ANZAHLUNGSRECHNUNG",angebot:"ANGEBOT"};
+    const typeLabel = typeLabels[docType||doc.docType||"rechnung"] || "RECHNUNG";
+    const logoHtml = p.logo ? '<img src="'+p.logo+'" style="height:60px;object-fit:contain;">' : '';
+    return `<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>${typeLabel} ${doc.number||""}</title>
+<style>@page{size:A4;margin:15mm}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Helvetica,Arial,sans-serif;color:#111;font-size:9pt;line-height:1.5;background:#fff}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:20px}
+.hdr h1{font-size:11pt;font-weight:800}.hdr .sub{font-size:7.5pt;color:#666;line-height:1.6;margin-top:4px}
+.doc-title{font-size:14pt;font-weight:800;letter-spacing:1.5px;text-align:right}.doc-sub{font-size:7.5pt;color:#888;margin-top:4px;text-align:right}
+.addr{margin-bottom:20px;font-size:9pt;line-height:1.6}.addr .to{font-size:7pt;color:#888;border-bottom:1px solid #ccc;padding-bottom:2px;margin-bottom:6px;display:inline-block}
+.meta{display:flex;gap:20px;margin-bottom:20px}.meta>div{font-size:8pt}.meta .label{color:#888;font-size:7pt;text-transform:uppercase;letter-spacing:0.4px}
+table{width:100%;border-collapse:collapse;margin-bottom:16px}th{text-align:left;font-size:7pt;text-transform:uppercase;letter-spacing:0.4px;color:#888;padding:6px 8px;border-bottom:1.5px solid #111}
+td{padding:6px 8px;font-size:8.5pt;border-bottom:1px solid #eee}.r{text-align:right}
+.totals{display:flex;justify-content:flex-end;margin-bottom:16px}.totals table{width:250px}
+.totals td{border:none;padding:3px 8px;font-size:8.5pt}.totals .grand{border-top:2px solid #111;font-weight:800;font-size:10pt}
+.note{background:#f8f8f8;border-radius:4px;padding:10px 14px;font-size:8pt;color:#555;line-height:1.6;margin-bottom:16px;white-space:pre-wrap}
+.foot{border-top:1px solid #ddd;padding-top:8px;font-size:6.5pt;color:#aaa;display:flex;justify-content:space-between}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body>
+<div class="hdr"><div>${logoHtml}<h1>${_esc(company)}</h1><div class="sub">${[p.street,p.zip&&p.city?p.zip+" "+p.city:"",p.email,p.phone].filter(Boolean).map(s=>'<div>'+_esc(s)+'</div>').join("")}</div></div>
+<div><div class="doc-title">${typeLabel}</div><div class="doc-sub">${_esc(doc.number||"")}<br>${fd(doc.date)}</div></div></div>
+<div class="addr"><div class="to">An</div><div><strong>${_esc(doc.clientName||"")}</strong></div>${doc.clientStreet?'<div>'+_esc(doc.clientStreet)+'</div>':""}${doc.clientZip||doc.clientCity?'<div>'+_esc((doc.clientZip||"")+" "+(doc.clientCity||""))+'</div>':""}${doc.clientEmail?'<div>'+_esc(doc.clientEmail)+'</div>':""}</div>
+<div class="meta"><div><div class="label">Datum</div>${fd(doc.date)}</div><div><div class="label">Fällig</div>${fd(doc.dueDate||doc.date)}</div>${doc.deliveryDate?'<div><div class="label">Lieferdatum</div>'+fd(doc.deliveryDate)+'</div>':""}${doc.ebayOrderId?'<div><div class="label">Bestellnr.</div>'+_esc(doc.ebayOrderId)+'</div>':""}${doc.marketplace?'<div><div class="label">Marktplatz</div>'+_esc(doc.marketplace)+'</div>':""}</div>
+<table><thead><tr><th>Pos</th><th>Beschreibung</th><th class="r">Menge</th><th class="r">Einzelpreis</th><th class="r">Gesamt</th></tr></thead><tbody>
+${items.map((it,i)=>'<tr><td>'+(i+1)+'</td><td>'+_esc(it.desc||"")+(it.sku?' <span style="color:#888;font-size:7pt">('+_esc(it.sku)+')</span>':"")+'</td><td class="r">'+(parseFloat(it.qty)||1)+'</td><td class="r">'+eur(parseFloat(it.price)||0)+'</td><td class="r">'+eur((parseFloat(it.qty)||1)*(parseFloat(it.price)||0))+'</td></tr>').join("")}
+</tbody></table>
+<div class="totals"><table>${shipping>0?'<tr><td>Versandkosten</td><td class="r">'+eur(shipping)+'</td></tr>':""}
+${isKU?'<tr><td style="font-size:7.5pt;color:#888">Gemäß §19 UStG wird keine USt berechnet</td><td></td></tr>':""}
+<tr class="grand"><td>Gesamtbetrag</td><td class="r">${eur(total)}</td></tr></table></div>
+${doc.note?'<div class="note">'+_esc(doc.note).replace(/\n/g,"<br>")+'</div>':""}
+${doc.sendungsNr?'<div style="font-size:8pt;margin-bottom:12px"><strong>Versand:</strong> '+(doc.logistiker||"")+" · Tracking: "+_esc(doc.sendungsNr)+'</div>':""}
+<div class="foot"><div>${p.taxNumber?"Steuernr.: "+_esc(p.taxNumber):""}</div><div>${_esc(company)} · ${fd(doc.date)}</div><div>${p.iban?"IBAN: "+_esc(p.iban):""}</div></div>
+</body></html>`;
+  }
+  
   function Invoices({
     data,
     setData,
@@ -9089,15 +9134,16 @@ Eigentumsvorbehalte: Die Ware bleibt bis zur vollständigen Bezahlung unser Eige
       setForm(blank());
       setFormErr({});
 
-      // v36: Auto-Backup der Rechnung als JSON in Dokumente/ Ordner
+      // v36: Auto-Backup der Rechnung als professionelles HTML in Drive
       if (drive && drive.isTokenValid && drive.isTokenValid()) {
         try {
           const invToSave = editId
             ? { ...form, id: editId, total: total(form.items) }
             : { ...form, total: total(form.items) };
-          const fname = `Rechnung_${invToSave.number || "entwurf"}_${new Date().toISOString().slice(0,10)}.json`;
-          const blob = new Blob([JSON.stringify(invToSave, null, 2)], { type: "application/json" });
-          const f = new File([blob], fname, { type: "application/json" });
+          const html = generateDocHTMLForDrive(invToSave, profile, invToSave.docType || "rechnung");
+          const fname = `${invToSave.number || "Entwurf"}_${(invToSave.clientName||"Kunde").replace(/[^a-zA-Z0-9äöüÄÖÜß -]/g,"")}.html`;
+          const blob = new Blob([html], { type: "text/html" });
+          const f = new File([blob], fname, { type: "text/html" });
           const custName = (invToSave.clientName || "Unbekannt").replace(/[^a-zA-Z0-9äöüÄÖÜß\s-]/g, "").trim();
           const docFolder = invToSave.docType === "lieferschein" ? "Lieferscheine"
             : invToSave.docType === "storno" ? "Stornorechnungen"
@@ -12500,9 +12546,11 @@ ${company}${phone ? "\nTel.: "+phone : ""}${email ? "\n"+email : ""}`;
         });
         if(drive?.isTokenValid&&drive.isTokenValid()){
           try{
-            const fname=`Angebot_${form.number}_${todayStr()}.json`;
-            const blob=new Blob([JSON.stringify({...form,total:total(form.items)},null,2)],{type:"application/json"});
-            uploadFileToDrive(new File([blob],fname,{type:"application/json"}),
+            const offerData = {...form,total:total(form.items)};
+            const html = generateDocHTMLForDrive(offerData, profile, "angebot");
+            const fname=`${form.number}_${(form.clientName||"Kunde").replace(/[^a-zA-Z0-9äöüÄÖÜß -]/g,"")}.html`;
+            const blob=new Blob([html],{type:"text/html"});
+            uploadFileToDrive(new File([blob],fname,{type:"text/html"}),
               `Kunden/${(form.clientName||"Unbekannt").replace(/[^a-zA-Z0-9äöüÄÖÜß\s-]/g,"").trim()}/Angebote`,form.date).catch(()=>{});
           }catch(e){}
         }
@@ -21565,7 +21613,7 @@ ${html}
   }
 
   // ── Google Drive ──────────────────────────────────────────────────
-  const GDRIVE_CLIENT_ID = "927286688549-9t6u2dp12juhhi5hlms46js8huu7m2rb.apps.googleusercontent.com";
+  const GDRIVE_CLIENT_ID = "927286688549-8nln5k99um5fq1f2fmiii1uvmhtjb6l6.apps.googleusercontent.com";
   const GDRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
   const FOLDER_ROOT = "Buchhaltung";
 
