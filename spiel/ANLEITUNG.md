@@ -11,42 +11,46 @@
 
 ## 2. Programme herunterladen (einmalig)
 
-1. **Epic Games Launcher**
-   - Seite öffnen: https://www.unrealengine.com/download
-   - Kostenloses Epic-Konto anlegen und den Launcher installieren.
-2. **Unreal Engine 5 installieren**
-   - Launcher starten → links auf **„Unreal Engine“** → oben auf **„Bibliothek“**.
-   - Auf **„+“** neben „Engine-Versionen“ klicken und die neueste 5.x-Version wählen → **Installieren**.
-   - Dauert je nach Internet 1–3 Stunden (~60–100 GB).
-3. **Visual Studio 2022 Community** (kostenlos, nötig für C++)
-   - https://visualstudio.microsoft.com/de/downloads/
-   - Beim Installieren diese Workloads anhaken:
-     - **„Spieleentwicklung mit C++“** (rechts zusätzlich „Unreal Engine-Installer“ und „Unreal Engine-Testadapter“ anhaken)
-     - **„Desktopentwicklung mit C++“**
-   - Unter „Einzelne Komponenten“: ein **.NET 8 SDK** oder neuer (für die Unreal-Build-Tools).
+1. **Epic Games Launcher**: https://www.unrealengine.com/download
+2. **Unreal Engine 5.8** installieren
+   - Launcher → links **„Unreal Engine“** → oben **„Bibliothek“** → gelber Knopf **„Engine installieren“**.
+   - Das Projekt ist auf **5.8** eingestellt.
+   - **Fab UE Plugin** → „In Engine installieren“ (für fotorealistische Modelle). **Quixel Bridge** brauchst du nicht, es wurde durch Fab ersetzt.
+3. **Git + Visual Studio 2022** (für C++): **PowerShell** öffnen (Windows-Taste → „PowerShell“) und einfügen:
 
-## 3. Projekt auf deinen PC holen
+   ```powershell
+   winget install --id Git.Git -e
+   winget install --id Microsoft.VisualStudio.2022.Community -e --override "--passive --wait --includeRecommended --add Microsoft.VisualStudio.Workload.NativeGame --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.ManagedDesktop"
+   ```
 
-Neuen Ordner anlegen, z. B. `C:\Spiele\`, und dort das Repo klonen:
+   Bei Fragen mit **J** bzw. **Y** bestätigen. Visual Studio ist ca. 10–20 GB groß.
 
-```
+## 3. Projektordner anlegen (automatisch)
+
+Wenn Git installiert ist: **PowerShell schließen und neu öffnen**, dann einfügen:
+
+```powershell
+New-Item -ItemType Directory -Force C:\Spiele | Out-Null
 cd C:\Spiele
-git clone https://github.com/sergiobiondoriolo/buchhaltung.git
-cd buchhaltung
-git checkout claude/upbeat-ramanujan-cr8wub
+git clone -b claude/upbeat-ramanujan-cr8wub https://github.com/sergiobiondoriolo/buchhaltung.git
+explorer C:\Spiele\buchhaltung\spiel
 ```
 
-Das Spiel liegt dann in **`C:\Spiele\buchhaltung\spiel\`**.
+Beim ersten Mal öffnet sich ein GitHub-Login-Fenster → anmelden.
+Danach öffnet sich der Ordner **`C:\Spiele\buchhaltung\spiel\`** mit dem Spiel.
 
-> Kein Git? → https://git-scm.com/download/win installieren, oder auf GitHub
-> „Code → Download ZIP“ und entpacken.
+Später neue Änderungen holen:
 
-## 4. Projekt öffnen
+```powershell
+cd C:\Spiele\buchhaltung
+git pull
+```
 
-1. Im Ordner `spiel\` **Rechtsklick auf `KlickAbenteuer.uproject`**
-   → **„Switch Unreal Engine version…“** → deine installierte Version wählen.
-2. **Doppelklick auf `KlickAbenteuer.uproject`**.
-3. Frage „Module fehlen, jetzt bauen?“ → **Ja**. Der erste Build dauert ein paar Minuten.
+## 4. Projekt öffnen (wenn Engine + Visual Studio fertig sind)
+
+1. Im Ordner `spiel\` **Doppelklick auf `KlickAbenteuer.uproject`**.
+2. Frage „Module fehlen, jetzt bauen?“ → **Ja**. Der erste Build dauert ein paar Minuten.
+3. Falls nach der Engine-Version gefragt wird: **5.8** wählen.
 
 ## 5. Erstes Level bauen (ca. 10 Minuten)
 
