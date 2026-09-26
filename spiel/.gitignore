@@ -1,14 +1,4 @@
-# Unreal Engine – automatisch erzeugte Dateien nicht einchecken
-Binaries/
-Intermediate/
-Saved/
-DerivedDataCache/
-.vs/
-.vscode/
-.idea/
-*.sln
-*.suo
-*.opensdf
-*.sdf
-*.VC.db
-*.VC.opendb
+# Godot – automatisch erzeugte Dateien
+.godot/
+/android/
+*.tmp

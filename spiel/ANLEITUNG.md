@@ -1,33 +1,14 @@
-# KlickAbenteuer – Point-and-Click-Adventure mit Unreal Engine 5
+# KlickAbenteuer – Point-and-Click-Adventure mit Godot 4
 
-## 1. Was dein PC braucht
+## 1. Projekt auf deinen PC holen
 
-| | Minimum | Empfohlen |
-|---|---|---|
-| System | Windows 10/11 64-bit | Windows 11 |
-| Grafikkarte | GTX 1070 / RX 5700 (DirectX 12) | RTX 3060 oder besser |
-| RAM | 16 GB | 32 GB |
-| Speicher | ca. 150 GB frei (SSD!) | |
+**PowerShell** öffnen (Windows-Taste → „PowerShell“) und einfügen:
 
-## 2. Programme herunterladen (einmalig)
+```powershell
+winget install --id Git.Git -e
+```
 
-1. **Epic Games Launcher**: https://www.unrealengine.com/download
-2. **Unreal Engine 5.8** installieren
-   - Launcher → links **„Unreal Engine“** → oben **„Bibliothek“** → gelber Knopf **„Engine installieren“**.
-   - Das Projekt ist auf **5.8** eingestellt.
-   - **Fab UE Plugin** → „In Engine installieren“ (für fotorealistische Modelle). **Quixel Bridge** brauchst du nicht, es wurde durch Fab ersetzt.
-3. **Git + Visual Studio 2022** (für C++): **PowerShell** öffnen (Windows-Taste → „PowerShell“) und einfügen:
-
-   ```powershell
-   winget install --id Git.Git -e
-   winget install --id Microsoft.VisualStudio.2022.Community -e --override "--passive --wait --includeRecommended --add Microsoft.VisualStudio.Workload.NativeGame --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.ManagedDesktop"
-   ```
-
-   Bei Fragen mit **J** bzw. **Y** bestätigen. Visual Studio ist ca. 10–20 GB groß.
-
-## 3. Projektordner anlegen (automatisch)
-
-Wenn Git installiert ist: **PowerShell schließen und neu öffnen**, dann einfügen:
+PowerShell **schließen und neu öffnen**, dann:
 
 ```powershell
 New-Item -ItemType Directory -Force C:\Spiele | Out-Null
@@ -36,8 +17,8 @@ git clone -b claude/upbeat-ramanujan-cr8wub https://github.com/sergiobiondoriolo
 explorer C:\Spiele\buchhaltung\spiel
 ```
 
-Beim ersten Mal öffnet sich ein GitHub-Login-Fenster → anmelden.
-Danach öffnet sich der Ordner **`C:\Spiele\buchhaltung\spiel\`** mit dem Spiel.
+Beim ersten Mal kommt ein GitHub-Login → anmelden.
+Das Spiel liegt dann in **`C:\Spiele\buchhaltung\spiel\`**.
 
 Später neue Änderungen holen:
 
@@ -46,59 +27,51 @@ cd C:\Spiele\buchhaltung
 git pull
 ```
 
-## 4. Projekt öffnen (wenn Engine + Visual Studio fertig sind)
+## 2. In Godot öffnen
 
-1. Im Ordner `spiel\` **Doppelklick auf `KlickAbenteuer.uproject`**.
-2. Frage „Module fehlen, jetzt bauen?“ → **Ja**. Der erste Build dauert ein paar Minuten.
-3. Falls nach der Engine-Version gefragt wird: **5.8** wählen.
+1. Godot starten → **„Importieren“** → Ordner `C:\Spiele\buchhaltung\spiel` wählen
+   (bzw. die Datei `project.godot`) → **„Importieren & Bearbeiten“**.
+2. Oben rechts auf **▶ (F5)** klicken → das Spiel startet.
 
-## 5. Erstes Level bauen (ca. 10 Minuten)
+## 3. Steuerung
 
-1. **File → New Level → Basic** → speichern als `Content/Maps/Raum1`.
-2. **Navigation für Klick-Laufen:** Oben „+“ (Quick Add) → *Volumes* → **Nav Mesh Bounds Volume**
-   ins Level ziehen und so groß skalieren, dass es den Boden umschließt.
-   Taste **P** zeigt den begehbaren Bereich grün an.
-3. **Anklickbares Objekt:** Im *Place Actors*-Fenster nach **„Interactable Actor“** suchen und ins Level ziehen.
-   Rechts im *Details*-Panel:
-   - **Mesh** → Static Mesh auswählen (z. B. `Cube` oder ein Megascans-Objekt)
-   - **Abenteuer → Display Name**: „Alte Truhe“
-   - **Description**: „Sie ist verschlossen.“
-4. **Rätsel bauen:**
-   - Objekt A („Schlüssel“): `Can Pick Up` ✔, `Item Id` = `Schluessel`
-   - Objekt B („Tür“): `Required Item Id` = `Schluessel`, `Solved Text` = „Die Tür knarrt auf!“,
-     `Missing Item Text` = „Abgeschlossen. Ich brauche einen Schlüssel.“
-5. **Edit → Project Settings → Maps & Modes** → *Editor Startup Map* und *Game Default Map* = `Raum1`.
-6. Oben auf **▶ Play** klicken.
-
-### Steuerung
 - **Linksklick auf den Boden** → Figur läuft hin
 - **Maus über Objekt** → Name erscheint, Cursor wird zur Hand
 - **Linksklick auf Objekt** → Figur läuft hin und schaut es an, hebt es auf oder benutzt einen Gegenstand
 
-## 6. Realistisch aussehen lassen
+Das Demo-Rätsel: Die Tür ist abgeschlossen → Schlüssel neben dem Teppich finden → Tür öffnen.
 
-- **Fab / Quixel Megascans**: fotorealistische Objekte und Oberflächen, direkt im Editor über **Window → Fab**.
-- **Lumen und Virtual Shadows** sind in `Config/DefaultEngine.ini` bereits eingeschaltet.
-- **Spielfigur:** Content Browser → *Add → Blueprint Class* → Elternklasse **AdventureCharacter**.
-  Dort unter *Mesh* eine Figur zuweisen (z. B. „Manny“ aus *Add Feature or Content Pack → Third Person*
-  oder einen **MetaHuman**). Danach in einem eigenen GameMode-Blueprint als *Default Pawn* eintragen.
-- **Eigene Aktionen:** Blueprint von *InteractableActor* anlegen und die Events
-  **On Interacted** / **On Solved** nutzen (Tür-Animation, Sound, Levelwechsel …).
-
-## 7. Projektstruktur
+## 4. Projektstruktur
 
 ```
 spiel/
-├── KlickAbenteuer.uproject      ← Doppelklick zum Öffnen
-├── Config/                      ← Grafik- und Spieleinstellungen
-├── Content/                     ← Level, Modelle, Sounds (im Editor erstellt)
-└── Source/KlickAbenteuer/
-    ├── AdventureGameMode        ← verbindet alles
-    ├── AdventureCharacter       ← Spielfigur + Kamera
-    ├── AdventurePlayerController← Klick-Steuerung + Inventar
-    ├── InteractableActor        ← anklickbare Objekte / Rätsel
-    └── AdventureHUD             ← Texte auf dem Bildschirm
+├── project.godot        ← Projektdatei
+├── scenes/
+│   └── main.tscn        ← der Raum (Wand, Boden, Objekte, Figur, Textanzeige)
+└── scripts/
+    ├── game.gd          ← Inventar + Meldungen (global als „Game“ verfügbar)
+    ├── main.gd          ← Klicks, Maus-Hover, Anzeige
+    ├── player.gd        ← Spielfigur, läuft zum Klickpunkt
+    └── hotspot.gd       ← anklickbare Objekte / Rätsel
 ```
 
-> Tipp: Unreal-Dateien (`.uasset`, `.umap`) werden schnell groß. Wenn du sie auf GitHub speichern willst,
-> installiere **Git LFS** (https://git-lfs.com) und führe im Repo `git lfs track "*.uasset" "*.umap"` aus.
+## 5. Eigene Objekte hinzufügen
+
+1. `scenes/main.tscn` öffnen.
+2. Rechtsklick auf **Main** → **Node hinzufügen** → **Node2D**.
+3. Im Inspektor unten bei **Script** → `res://scripts/hotspot.gd` reinziehen.
+4. Rechts im Inspektor einstellen:
+   - **Display Name**: „Truhe“
+   - **Description**: „Sie ist verschlossen.“
+   - **Size**: Größe der Klickfläche
+   - **Walk Offset**: wo die Figur stehen bleibt (grüner Punkt im Editor)
+   - Aufheben: **Can Pick Up** ✔ und **Item Id** (z. B. `hammer`)
+   - Rätsel: **Required Item** = Item Id des nötigen Gegenstands, dazu **Solved Text** und **Missing Text**
+
+## 6. Richtige Grafik statt bunter Kästen
+
+- **Hintergrund:** ein gemaltes Bild (1280×720) als **Sprite2D** ganz oben in die Szene legen.
+  Die Farben der Hotspots dann auf transparent stellen (Alpha = 0).
+- **Figur:** unter `Player` ein **AnimatedSprite2D** mit Lauf-Animation einfügen und in
+  `player.gd` die Funktion `_draw()` löschen.
+- Kostenlose Grafiken: https://itch.io/game-assets/free/tag-point-and-click
